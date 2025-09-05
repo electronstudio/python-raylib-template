@@ -1,0 +1,43 @@
+[project]
+name = "{{project_name}}"
+version = "0.1.0"
+description = "A simple game example using Raylib Python bindings"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [
+    {name = "{{your_name}}", email = "{{your_email}}"}
+]
+keywords = ["raylib", "game"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Games/Entertainment",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "raylib-sdl>=5.5.0.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/{{github_user}}/{{project_name}}"
+Repository = "https://github.com/{{github_user}}/{{project_name}}.git"
+Issues = "https://github.com/{{github_user}}/{{project_name}}/issues"
+
+[project.scripts]
+{{project_name}} = "{{module_name}}:main"
+build-binary = "scripts.build:main"
+build-web = "scripts.build_web:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "nuitka>=2.7.13",
+    "pygbag",
+]

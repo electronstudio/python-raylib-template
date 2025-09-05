@@ -1,0 +1,25 @@
+# questions
+project_name:
+    type: str
+    help: What is your project name?
+    default: raylib-example-game
+
+module_name:
+    type: str
+    help: What is your Python module name?
+    default: raylib_example_game
+
+your_name:
+  type: str
+  help: What is your name?
+  default: John Smith
+
+your_email:
+  type: str
+  help: What is your email address?
+  default: none@example.com
+
+github_user:
+  type: str
+  help: What is your Github username?
+  default: no_github_user

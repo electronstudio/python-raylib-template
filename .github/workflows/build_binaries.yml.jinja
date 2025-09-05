@@ -1,0 +1,133 @@
+name: Build Cross-Platform Binaries
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write  # Required for creating GitHub releases
+
+jobs:
+  build:
+    name: Build {% raw %}${{ matrix.platform }}{% endraw %}
+    runs-on: {% raw %}${{ matrix.os }}{% endraw %}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            os: ubuntu-latest
+            artifact_name: {{project_name}}-linux
+            binary_path: {{project_name}}
+          - platform: windows
+            os: windows-latest
+            artifact_name: {{project_name}}-windows
+            binary_path: {{project_name}}.exe
+          - platform: macos
+            os: macos-latest
+            artifact_name: {{project_name}}-macos
+            binary_path: {{project_name}}
+
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install system dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Install system dependencies (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          # macOS usually has the required build tools installed
+          xcode-select --install || true
+
+      - name: Build binary
+        run: |
+          uv sync --dev --python python3.13
+          uv run --python python3.13 build-binary
+
+      - name: Verify binary exists (Linux/macOS)
+        if: matrix.platform != 'windows'
+        run: |
+          ls -la {% raw %}${{ matrix.binary_path }}{% endraw %}
+
+      - name: Verify binary exists (Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          dir {% raw %}${{ matrix.binary_path }}{% endraw %}
+
+      - name: Create Linux archive
+        if: matrix.platform == 'linux'
+        run: |
+          tar -cjf {{project_name}}-linux.tar.bz2 {% raw %}${{ matrix.binary_path }}{% endraw %}
+          ls -la {{project_name}}-linux.tar.bz2
+
+      - name: Create macOS archive
+        if: matrix.platform == 'macos'
+        run: |
+          tar -cjf {{project_name}}-macos.tar.bz2 {% raw %}${{ matrix.binary_path }}{% endraw %}
+          ls -la {{project_name}}-macos.tar.bz2
+
+      - name: Create Windows archive
+        if: matrix.platform == 'windows'
+        run: |
+          7z a {{project_name}}-windows.zip {% raw %}${{ matrix.binary_path }}{% endraw %}
+          dir {{project_name}}-windows.zip
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: {% raw %}${{ matrix.artifact_name }}{% endraw %}
+          path: |
+            *.tar.bz2
+            *.zip
+          if-no-files-found: error
+
+  create-release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/{{project_name}}-linux/*.tar.bz2
+            ./artifacts/{{project_name}}-windows/*.zip
+            ./artifacts/{{project_name}}-macos/*.tar.bz2
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}

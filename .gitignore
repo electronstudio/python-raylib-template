@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv*
+
+# Nuitka build artifacts
+*.build/
+*.dist/
+*.onefile-build/
+main.build/
+main.dist/
+main.onefile-build/
+
+# Platform-specific binaries
+*.exe
+*.app
+*.dSYM/
+
+# Nuitka cache
+.nuitka/
+
+.idea/
