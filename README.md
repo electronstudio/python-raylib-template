@@ -12,7 +12,7 @@ Install copier:
 
 Run copier:
 
-    copier copy gh:electronstudio/python_raylib_template my_game
+    copier copy gh:electronstudio/python-raylib-template my_game
 
 Read your new README.md for build instructions.
 
